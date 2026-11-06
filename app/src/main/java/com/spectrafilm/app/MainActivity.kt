@@ -2241,7 +2241,10 @@ class MainActivity : ComponentActivity() {
                         sourceName = displayName
                         sourceAuthorizationRequired = false
                         if (switched) rotation = SourceRotation.NONE
-                        status = if (ref.accessMode == SourceAccessMode.PERSISTED) {
+                        status = if (
+                            ref.accessMode == SourceAccessMode.PERSISTED ||
+                            GalleryLibrary.isTreeDerivedUri(uri)
+                        ) {
                             readyStatus
                         } else {
                             ctx.getString(R.string.editor_status_access_temporary, readyStatus)
@@ -3569,7 +3572,8 @@ class MainActivity : ComponentActivity() {
         BackHandler(enabled = sampleOverlayOpen) { sampleOverlayOpen = false; sampleWbMode = false }
         BackHandler(enabled = !cropOverlayOpen && !maskOverlayOpen && !sampleOverlayOpen && !exportMaskVisible && activeCategory != null) { activeCategory = null }
         BackHandler(enabled = !cropOverlayOpen && !maskOverlayOpen && !sampleOverlayOpen && !exportMaskVisible && activeCategory == null) {
-            if (backArmed) {
+            // Opened from the gallery: one back press returns to the grid.
+            if (backArmed || !isTaskRoot) {
                 finish()
             } else {
                 backArmed = true

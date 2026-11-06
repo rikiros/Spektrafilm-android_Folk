@@ -253,9 +253,11 @@ internal class AndroidUriGrantBackend(context: Context) : UriGrantBackend {
         it.uri.toString() == uri && it.isReadPermission
     }
 
+    // The gallery's folder (SAF tree) grant is owned by GalleryLibrary, not by the
+    // single-source reconciler, so it is never offered up for release here.
     override fun persistedReads(): Set<String> = resolver.persistedUriPermissions
         .asSequence()
-        .filter { it.isReadPermission }
+        .filter { it.isReadPermission && !GalleryLibrary.isTreeGrantUri(it.uri) }
         .map { it.uri.toString() }
         .toSet()
 

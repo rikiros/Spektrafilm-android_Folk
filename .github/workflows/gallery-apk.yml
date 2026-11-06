@@ -1,0 +1,46 @@
+# Gallery fork: fast path that only assembles the debug APK (no lint/tests gates),
+# so a testable APK is available as soon as it compiles. The full CI still runs too.
+name: Gallery APK
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+concurrency:
+  group: gallery-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Assemble debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install NDK + CMake + build-tools
+        run: sdkmanager "ndk;28.2.13676358" "cmake;3.22.1" "build-tools;36.0.0" "platforms;android-37.0"
+
+      - name: Assemble debug APK
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Spektra-Gallery-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

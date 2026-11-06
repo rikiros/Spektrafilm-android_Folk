@@ -77,6 +77,9 @@ android {
         debug {
             // en-XA / ar-XB for the #181 layout checks (expanded text, RTL).
             isPseudoLocalesEnabled = true
+            // Gallery fork: installs side by side with the official signed app.
+            applicationIdSuffix = ".gallery"
+            versionNameSuffix = "-gallery"
         }
         release {
             isMinifyEnabled = true
