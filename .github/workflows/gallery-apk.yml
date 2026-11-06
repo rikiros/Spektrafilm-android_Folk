@@ -15,6 +15,8 @@ jobs:
   apk:
     name: Assemble debug APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
@@ -44,3 +46,17 @@ jobs:
           name: Spektra-Gallery-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      - name: Publish rolling "gallery-latest" release (direct phone download)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cp app/build/outputs/apk/debug/app-debug.apk Spektra-Gallery.apk
+          gh release delete gallery-latest --yes --cleanup-tag || true
+          gh release create gallery-latest Spektra-Gallery.apk \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Spektra Gallery (latest test build)" \
+            --notes "Debug build of ${GITHUB_SHA::7}. Installs beside the official Spektrafilm app."
